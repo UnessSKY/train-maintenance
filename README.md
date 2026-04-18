@@ -13,17 +13,16 @@ A real-time predictive maintenance system for train monitoring using machine lea
 
 ```
 siana projects/
-├── app.py                 # Flask web application
-├── data_generator.py      # Sensor data simulation
-├── model.py               # Machine learning models
+├── README.md              # This file
 ├── requirements.txt       # Python dependencies
 ├── static/
 │   └── charts.js          # JavaScript for chart updates
 ├── templates/
 │   └── dashboard.html     # HTML dashboard template
-├── tests/
-│   └── data_generator.py  # Tests for data generator
-└── README.md              # This file
+└── tests/
+    ├── app.py             # Flask web application
+    ├── data_generator.py  # Sensor data simulation
+    └── model.py           # Machine learning models
 ```
 
 ## Installation
@@ -41,11 +40,18 @@ siana projects/
 
 3. **Run the application**:
    ```
-   python app.py
+   python tests/app.py
    ```
 
 4. **Open in browser**:
    Navigate to `http://127.0.0.1:5000`
+
+## Testing
+
+Run the test suite to verify functionality:
+```
+python -m pytest tests/
+```
 
 ## Usage
 
@@ -65,7 +71,7 @@ The models start training after collecting 200 data points and update continuous
 
 ## Demo Mode
 
-The system includes a demo mode that accelerates degradation for demonstration purposes. Set `DEMO_MODE = False` in `data_generator.py` for realistic simulation.
+The system includes a demo mode that accelerates degradation for demonstration purposes. Set `DEMO_MODE = False` in `tests/data_generator.py` for realistic simulation.
 
 ## Technologies Used
 
