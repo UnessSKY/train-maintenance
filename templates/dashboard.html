@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Train Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .health-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .alert-box {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .chart-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        canvas {
+            width: 100% !important;
+            height: 200px !important;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .stat {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            flex: 1;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚂 Train Health Monitor</h1>
+    
+    <div class="health-box" id="healthDisplay">
+        Train Health: 100%
+    </div>
+    
+    <div class="stats">
+        <div class="stat" id="failureProb">Failure Risk: 0%</div>
+        <div class="stat" id="timeLeft">Time Left: --</div>
+    </div>
+    
+    <div id="alertBox" class="alert-box" style="display: none;"></div>
+    
+    <div class="charts">
+        <div class="chart-card">
+            <h3>Vibration</h3>
+            <canvas id="chart1"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Temperature</h3>
+            <canvas id="chart2"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Brake Pressure</h3>
+            <canvas id="chart3"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Motor Current</h3>
+            <canvas id="chart4"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Wheel RPM</h3>
+            <canvas id="chart5"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Create charts
+        const charts = {};
+        const colors = ['red', 'orange', 'blue', 'purple', 'green'];
+        const titles = ['Vibration', 'Temperature', 'Brake', 'Motor', 'RPM'];
+        
+        for (let i = 1; i <= 5; i++) {
+            const ctx = document.getElementById('chart' + i).getContext('2d');
+            charts['chart' + i] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: titles[i-1],
+                        data: [],
+                        borderColor: colors[i-1],
+                        backgroundColor: 'rgba(0,0,0,0)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: false,
+                    scales: {
+                        y: { beginAtZero: false }
+                    }
+                }
+            });
+        }
+        
+        // Update data every second
+        function updateData() {
+            fetch('/get_data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update health
+                    document.getElementById('healthDisplay').innerHTML = 
+                        `Train Health: ${data.current.health}%`;
+                    
+                    // Update health color
+                    if (data.current.health < 30) {
+                        document.getElementById('healthDisplay').style.background = '#ff4444';
+                        document.getElementById('healthDisplay').style.color = 'white';
+                    } else if (data.current.health < 60) {
+                        document.getElementById('healthDisplay').style.background = '#ffaa44';
+                    } else {
+                        document.getElementById('healthDisplay').style.background = '#44ff44';
+                    }
+                    
+                    // Update failure risk (simple calculation)
+                    const risk = Math.round((100 - data.current.health) / 1.5);
+                    document.getElementById('failureProb').innerHTML = `Failure Risk: ${risk}%`;
+                    
+                    // Update time left (rough estimate)
+                    const minutes = Math.round(data.current.health / 2);
+                    document.getElementById('timeLeft').innerHTML = `Est. Time Left: ${minutes} min`;
+                    
+                    // Update alert
+                    if (data.alert) {
+                        const alertBox = document.getElementById('alertBox');
+                        alertBox.style.display = 'block';
+                        alertBox.style.background = data.alert.color;
+                        alertBox.innerHTML = `[${data.alert.level}] ${data.alert.message}`;
+                        alertBox.style.color = 'white';
+                    }
+                    
+                    // Update charts
+                    const sensors = ['vibration', 'temperature', 'brake', 'motor', 'rpm'];
+                    sensors.forEach((sensor, index) => {
+                        const chart = charts['chart' + (index + 1)];
+                        const history = data.history[sensor];
+                        
+                        chart.data.labels = history.map(item => item.time);
+                        chart.data.datasets[0].data = history.map(item => item.value);
+                        chart.update();
+                    });
+                });
+        }
+        
+        // Run every second
+        setInterval(updateData, 1000);
+        updateData(); // Run once immediately
+    </script>
+</body>
+</html>
