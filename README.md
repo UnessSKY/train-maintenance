@@ -16,10 +16,13 @@ siana projects/
 ├── app.py                 # Flask web application
 ├── data_generator.py      # Sensor data simulation
 ├── model.py               # Machine learning models
+├── requirements.txt       # Python dependencies
 ├── static/
 │   └── charts.js          # JavaScript for chart updates
 ├── templates/
 │   └── dashboard.html     # HTML dashboard template
+├── tests/
+│   └── data_generator.py  # Tests for data generator
 └── README.md              # This file
 ```
 
@@ -33,7 +36,7 @@ siana projects/
 2. **Install dependencies**:
    Make sure you have Python 3.7+ installed. Install required packages:
    ```
-   pip install flask numpy scikit-learn
+   pip install -r requirements.txt
    ```
 
 3. **Run the application**:
